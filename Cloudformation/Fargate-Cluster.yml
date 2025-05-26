@@ -237,7 +237,7 @@ Resources:
       # the dimensions can be found in the console after selecting a namespace to filter by
       Dimensions:
         - Name: TargetGroup
-          Value: !GetAtt TargetGroup.TargetGroupFullName
+          Value: !Ref TargetGroup.Name
       EvaluationPeriods: 3
       # the metric name can be found in the console on the screen before a metric is graphed
       MetricName: RequestCountPerTarget
