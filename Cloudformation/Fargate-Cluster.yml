@@ -113,7 +113,7 @@ Resources:
             - ContainerPort: !Ref ContainerPort
               HostPort: !Ref ContainerPort
 
-  # Creat a security group for load balancer and open port 80 in bound from internet
+  # Create a security group for load balancer and open port 80 in bound from internet
   LoadBalancerSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
