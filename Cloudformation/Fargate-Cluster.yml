@@ -173,7 +173,7 @@ Resources:
       Protocol: HTTP
 
   # Create an ECS Service and add created Cluster, TaskDefintion, Subnets, TargetGroup and SecurityGroup
-  ECSService:
+  ECSService1:
     Type: AWS::ECS::Service
     DependsOn: LoadBalancerListener
     Properties:
@@ -194,3 +194,59 @@ Resources:
         - ContainerName: !Join ['-', [!Ref Stage, !Ref 'AWS::AccountId', 'Container']]
           ContainerPort: !Ref ContainerPort
           TargetGroupArn: !Ref TargetGroup
+
+  ScaleUpPolicy:
+    Type: AWS::ApplicationAutoScaling::ScalingPolicy
+    Properties:
+      PolicyName: !Join ['-', [!Ref Stage, !Ref 'AWS::AccountId', 'ScaleUpPolicy']]
+      PolicyType: StepScaling
+      ScalingTargetId: !Ref TargetGroup
+      StepScalingPolicyConfiguration:
+        AdjustmentType: ChangeInCapacity
+        Cooldown: 60
+        MetricAggregationType: Average
+        StepAdjustments:
+          - MetricIntervalLowerBound: 0
+            ScalingAdjustment: 1
+
+  ScaleDownPolicy:
+    Type: AWS::ApplicationAutoScaling::ScalingPolicy
+    Properties:
+      PolicyName: !Join ['-', [!Ref Stage, !Ref 'AWS::AccountId', 'ScaleDownPolicy']]
+      PolicyType: StepScaling
+      ScalingTargetId: !Ref TargetGroup
+      StepScalingPolicyConfiguration:
+        AdjustmentType: ChangeInCapacity
+        Cooldown: 60
+        MetricAggregationType: Average
+        StepAdjustments:
+          - MetricIntervalUpperBound: 0
+            ScalingAdjustment: -1
+
+  AlarmHighRequests:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: TRUE
+      AlarmActions:
+        - !Ref ScaleUpPolicy
+      AlarmDescription: 
+        - 'Scale Up Alarm based on requests'
+  
+      ComparisonOperator: GreaterThanThreshold
+      DatapointsToAlarm: 2
+      # the dimensions can be found in the console after selecting a namespace to filter by
+      Dimensions:
+        - Name: TargetGroup
+          Value: !GetAtt TargetGroup.TargetGroupFullName
+      EvaluationPeriods: 3
+      # the metric name can be found in the console on the screen before a metric is graphed
+      MetricName: RequestCountPerTarget
+      # the namespace can be found in the console on the first screen before filtering metrics
+      Namespace: AWS/ApplicationELB
+      OKActions:
+        - !Ref ScaleDownPolicy
+      Period: 60
+      Statistic: Sum
+      Threshold: 3000
+      TreatMissingData: ignore
+      Unit: None # comes from the metric
