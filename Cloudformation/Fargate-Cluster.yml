@@ -231,7 +231,7 @@ Resources:
         - !Ref ScaleUpPolicy
       AlarmDescription: 
         - 'Scale Up Alarm based on requests'
-  
+        - 'alarm' 
       ComparisonOperator: GreaterThanThreshold
       DatapointsToAlarm: 2
       # the dimensions can be found in the console after selecting a namespace to filter by
